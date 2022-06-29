@@ -3,3 +3,4 @@
 /target/
 /.idea/
 /.bsp/sbt.json
+.DS_Store
