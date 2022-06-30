@@ -38,19 +38,21 @@ object MulticastTool extends JFXApp {
             cellValueFactory = _.value.host
             prefWidth = 180
           },
-          new TableColumn[NodeStats, Int] {
+          new TableColumn[NodeStats, Long] {
             text = "Count"
-            cellValueFactory = { value => {
-              ObjectProperty[Int](value.value.totalReceived.get())
-            }
-            }
-            prefWidth = 180
+            cellValueFactory = _.value.totalReceived
+            prefWidth = 125
           },
-          new TableColumn[NodeStats, String]() {
-            text = "LastMessage"
-            cellValueFactory = _.value.lastMessage
-            prefWidth = 180
+          new TableColumn[NodeStats, Long] {
+            text = "S/N"
+            cellValueFactory = _.value.lastSn
+            prefWidth = 125
           }
+//          new TableColumn[NodeStats, String]() {
+//            text = "LastMessage"
+//            cellValueFactory = _.value.lastMessage
+//            prefWidth = 250
+//          }
         )
       }
     }
@@ -101,7 +103,7 @@ class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
   val sn = new AtomicLong()
 
   def send(): Unit = {
-    val message = Message(us, sn.getAndIncrement())
+    val message = Message(us, sn.incrementAndGet())
     val bytes = Json.toJson(message).toString().getBytes
 
     //      val message = s"multicast Message: $sn".getBytes()

@@ -1,11 +1,27 @@
+import com.typesafe.sbt.packager.SettingsHelper.makeDeploymentSettings
+
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "2.13.8"
+enablePlugins(JavaAppPackaging, GitPlugin, BuildInfoPlugin, SbtTwirl, UniversalPlugin)
+buildInfoKeys ++= Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, maintainer,
+  git.gitCurrentTags, git.gitCurrentBranch, git.gitHeadCommit, git.gitHeadCommitDate, git.baseVersion)
+buildInfoPackage := "org.wa9nnn.fdcluster"
+
+buildInfoOptions ++= Seq(
+  BuildInfoOption.ToJson,
+  BuildInfoOption.BuildTime,
+//  BuildInfoOption.Traits("org.wa9nnn.multicasttool.BuildInfoBase")
+)
+
 
 lazy val root = (project in file("."))
   .settings(
     name := "MulticastTool"
   )
+
+makeDeploymentSettings(Universal, packageBin in Universal, "zip")
+
 val logbackVersion = "1.2.3"
 
 libraryDependencies ++= Seq(
