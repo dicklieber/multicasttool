@@ -1,4 +1,4 @@
-package com.wa9nnn.sbttest
+package com.wa9nnn.multicasttool
 
 import play.api.libs.json.{Json, OFormat}
 

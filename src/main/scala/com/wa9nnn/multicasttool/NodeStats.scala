@@ -1,4 +1,4 @@
-package com.wa9nnn.sbttest
+package com.wa9nnn.multicasttool
 
 import com.codahale.metrics.Meter
 import scalafx.beans.property.{LongProperty, ObjectProperty, StringProperty}

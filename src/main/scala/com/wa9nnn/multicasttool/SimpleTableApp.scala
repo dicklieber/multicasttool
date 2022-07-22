@@ -1,4 +1,4 @@
-package com.wa9nnn.sbttest
+package com.wa9nnn.multicasttool
 
 
 import scalafx.application.JFXApp

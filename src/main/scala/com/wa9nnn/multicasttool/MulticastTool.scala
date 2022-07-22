@@ -1,7 +1,7 @@
-package com.wa9nnn.sbttest
+package com.wa9nnn.multicasttool
 
 import com.typesafe.scalalogging.LazyLogging
-import com.wa9nnn.sbttest.Message.fmt
+import com.wa9nnn.multicasttool.Message.fmt
 import play.api.libs.json.Json
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
