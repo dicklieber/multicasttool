@@ -30,7 +30,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   "ch.qos.logback" % "logback-classic" % logbackVersion,
   "ch.qos.logback" % "logback-core" % logbackVersion,
-
+  "commons-io" % "commons-io" % "2.11.0",
   "com.typesafe.play" %% "play-json" % "2.9.2",
 
 )

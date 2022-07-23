@@ -1,23 +1,25 @@
 package com.wa9nnn.multicasttool.wsjt;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.ByteOrder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.LocalTime;
 import java.util.Arrays;
 
-class MessageDecoder{
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
+class JavaParser {
     private int schemaVersion;
     private int messageType;
     byte [] rData;
     int byteCount;
     int nextByte = 0;
-    final Logger log = LoggerFactory.getLogger(MessageDecoder.class);
+    final Logger log = LoggerFactory.getLogger(JavaParser.class);
 
-    MessageDecoder(byte[] rData, int byteCount){
+    JavaParser(byte[] rData, int byteCount){
         this.rData = rData;
         this.byteCount = byteCount;
     }
@@ -30,7 +32,7 @@ class MessageDecoder{
         return res;
     }
 
-    private double nextDouble(){
+     double nextDouble(){
         byte[] res = new byte[8];
         for(int i=0; i < 8; i++){
             res[i] = rData[nextByte++];
@@ -38,7 +40,7 @@ class MessageDecoder{
         return ByteBuffer.wrap(res).getDouble();
     }
 
-    private String nextString(){
+     String nextString(){
         if(byteCount <= nextByte){
             log.debug("nextString when byteCount is {} and nextByte is {}", byteCount, nextByte);
             return "";
@@ -58,7 +60,7 @@ class MessageDecoder{
         return bb.order(ByteOrder.BIG_ENDIAN).getInt();
     }
 
-    private int nextInt(){
+     int nextInt(){
         byte[] theWord = nextFour();
         ByteBuffer bb = ByteBuffer.wrap(theWord);
         return getIntInOrder(bb);
@@ -73,19 +75,23 @@ class MessageDecoder{
         return bb.order(ByteOrder.BIG_ENDIAN).getLong();
     }
 
-    private boolean nextBool(){
+     boolean nextBool(){
         byte b = rData[nextByte++];
         return (b == 0) ? false : true;
     }
 
-    private int nextTime(){
+    private int nextTimeInt(){
         return nextInt();
+    }
+    LocalTime nextTime() {
+        long ns = MILLISECONDS.convert(nextTimeInt(), MILLISECONDS);
+        return LocalTime.ofNanoOfDay(ns);
     }
 
     private QDecodeMessage parseDecode(){
         String id = nextString();
         boolean newDecode = nextBool();
-        int time = nextTime();
+        int time = nextTimeInt();
         int snr = nextInt();
         double deltaTime = nextDouble();
         int deltaFrequency = nextInt();
