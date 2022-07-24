@@ -1,7 +1,7 @@
 package com.wa9nnn.multicasttool.wsjt
 
 import com.typesafe.scalalogging.LazyLogging
-import com.wa9nnn.multicasttool.wsjt.MessageType.{CLEAR, CLOSE, DECODE, FREE_TEXT, HALT_TX, HEARTBEAT, QSO_LOGGED, REPLAY, REPLY, STATUS, WSPR_DECODE, values}
+import MessageType.{CLEAR, CLOSE, DECODE, FREE_TEXT, HALT_TX, HEARTBEAT, QSO_LOGGED, REPLAY, REPLY, STATUS, WSPR_DECODE, values}
 import org.apache.commons.io.HexDump
 
 import java.nio.ByteBuffer

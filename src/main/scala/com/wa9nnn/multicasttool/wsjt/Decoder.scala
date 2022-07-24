@@ -3,11 +3,13 @@ package com.wa9nnn.multicasttool.wsjt
 import scala.util.Try
 import Parser._
 import com.typesafe.scalalogging.LazyLogging
+import com.wa9nnn.multicasttool.wsjt
 import com.wa9nnn.multicasttool.wsjt.DecodeMessage.{HeartbeatMessage, LoggedMessage}
+import org.apache.commons.codec.binary.Base64
 import com.wa9nnn.multicasttool.wsjt.MessageType._
-
 object Decoder extends LazyLogging {
   val signature: Long = 0xADBCCBDA
+  private val binCapture = new BinCapture()
 
   def apply(in: Array[Byte]): Try[Message] = {
     Try {
@@ -21,7 +23,12 @@ object Decoder extends LazyLogging {
         throw new IllegalArgumentException(s"Expecting schema of ${3} but got $receivedSignature")
 
       val types: Array[MessageType] = MessageType.values()
-     implicit  val messageType: MessageType = types(quint32.asInstanceOf[Int])
+      implicit val messageType: MessageType = types(quint32.asInstanceOf[Int])
+
+      implicit val base64bin = Option.when(logger.underlying.isDebugEnabled()) {
+        Base64.encodeBase64String(in)
+      }
+
       val r = messageType match {
         case HEARTBEAT =>
           HeartbeatMessage()
@@ -37,6 +44,7 @@ object Decoder extends LazyLogging {
         case FREE_TEXT => throw new NotImplementedError() //todo
         case WSPR_DECODE => throw new NotImplementedError() //todo
       }
+      binCapture.write(r.debug)
       r
     }
   }
@@ -44,4 +52,4 @@ object Decoder extends LazyLogging {
 
 }
 
-case class DecodeException(messageType: MessageType, cause:Throwable) extends Throwable
+case class DecodeException(messageType: MessageType, cause: Throwable) extends Throwable

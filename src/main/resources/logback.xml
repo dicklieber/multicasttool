@@ -35,6 +35,7 @@
 
     <logger name="com.wa9nnn.multicasttool.Multicast" level="DEBUG"/>
     <logger name="com.wa9nnn.multicasttool.wsjt" level="INFO"/>
+    <logger name="com.wa9nnn.multicasttool.wsjt.Decoder" level="DEBUG"/>
 
 
     <root level="INFO">

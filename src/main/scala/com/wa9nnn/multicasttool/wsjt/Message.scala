@@ -1,13 +1,15 @@
 package com.wa9nnn.multicasttool.wsjt
 
 import com.wa9nnn.multicasttool.wsjt.Message._
+import com.wa9nnn.multicasttool.wsjt.Parser._
 
-import java.time.{Instant, LocalDateTime, LocalTime}
-import Parser._
+import java.time.{Instant, LocalTime}
 
 trait Message {
   val id: String
+  val debug: Option[MessageDebug]
 }
+
 
 object Message {
   type Utf8 = String
@@ -29,10 +31,11 @@ case class DecodeMessage(id: Utf8,
                          deltaFrequency: Quint64,
                          mode: Utf8,
                          message: Utf8,
-                         lowConfidence: QBool) extends Message
+                         lowConfidence: QBool,
+                         debug: Option[MessageDebug] = None) extends Message
 
 object DecodeMessage {
-  def apply()(implicit parser: Parser): DecodeMessage = {
+  def apply()(implicit parser: Parser, mt: MessageType, bin: Option[String]): DecodeMessage = {
     new DecodeMessage(
       id = utf8,
       newDecode = bool(),
@@ -43,6 +46,7 @@ object DecodeMessage {
       mode = utf8(),
       message = utf8(),
       lowConfidence = bool(),
+      debug = bin.map(MessageDebug(mt, _))
     )
   }
 
@@ -64,12 +68,12 @@ object DecodeMessage {
                            myGrid: Utf8,
                            exchangeSent: Utf8,
                            exchangeReceived: Utf8,
-                           adifPropagationMode: Utf8
-
+                           adifPropagationMode: Utf8,
+                           debug: Option[MessageDebug] = None
                           ) extends Message
 
   object LoggedMessage {
-    def apply()(implicit parser: Parser, mt:MessageType): LoggedMessage = {
+    def apply()(implicit parser: Parser, mt: MessageType, bin: Option[String]): LoggedMessage = {
       try {
         val r = new LoggedMessage(
           id = utf8,
@@ -88,12 +92,13 @@ object DecodeMessage {
           myCall = utf8(), myGrid = utf8(),
           exchangeSent = utf8(),
           exchangeReceived = utf8(),
-          adifPropagationMode = utf8()
+          adifPropagationMode = utf8(),
+          debug = bin.map(MessageDebug(mt, _))
         )
         r
       } catch {
-        case e:Exception =>
-          throw new DecodeException(mt, e)
+        case e: Exception =>
+          throw DecodeException(mt, e)
       }
     }
   }
@@ -103,17 +108,19 @@ object DecodeMessage {
                                id: Utf8,
                                maxSchemaNumber: Quint32,
                                version: Utf8,
-                               revision: Utf8
+                               revision: Utf8,
+                               debug: Option[MessageDebug] = None
 
                              ) extends Message
 
   object HeartbeatMessage {
-    def apply()(implicit parser: Parser): HeartbeatMessage = {
+    def apply()(implicit parser: Parser, mt: MessageType, bin: Option[String]): HeartbeatMessage = {
       new HeartbeatMessage(
         id = utf8(),
         maxSchemaNumber = quint32(),
         version = utf8(),
-        revision = utf8()
+        revision = utf8(),
+        debug = bin.map(MessageDebug(mt, _))
       )
     }
   }

@@ -2,9 +2,7 @@ package com.wa9nnn.multicasttool.wsjt
 
 import com.typesafe.scalalogging.LazyLogging
 
-import java.io.OutputStream
 import java.net.{DatagramPacket, InetAddress, MulticastSocket}
-import java.nio.file.{Files, Path, Paths}
 import java.util.concurrent.ArrayBlockingQueue
 import scala.util.{Failure, Success}
 
@@ -25,9 +23,6 @@ class UDP(multicastGroup: InetAddress, port: Int, queue: ArrayBlockingQueue[Mess
   var multicastSocket: MulticastSocket = new MulticastSocket(port);
   multicastSocket.setReuseAddress(true)
   multicastSocket.joinGroup(multicastGroup);
-  private val binCapture = new BinCapture()
-  //  private val path: Path = Paths.get("wsjtCapture.bin")
-  //  private val outputStream: OutputStream = Files.newOutputStream(path)
 
   var buf = new Array[Byte](1000);
 
@@ -37,8 +32,6 @@ class UDP(multicastGroup: InetAddress, port: Int, queue: ArrayBlockingQueue[Mess
       val recv: DatagramPacket = new DatagramPacket(buf, buf.length);
       multicastSocket.receive(recv);
       val payloadBytes: Array[Byte] = recv.getData.take(recv.getLength)
-
-      binCapture.write(payloadBytes)
 
       val triedMessage = Decoder(payloadBytes)
 
