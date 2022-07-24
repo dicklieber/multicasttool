@@ -31,6 +31,8 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % logbackVersion,
   "ch.qos.logback" % "logback-core" % logbackVersion,
   "commons-io" % "commons-io" % "2.11.0",
+  "commons-codec" % "commons-codec" % "1.15",
   "com.typesafe.play" %% "play-json" % "2.9.2",
-
+  "org.specs2" %% "specs2-core" % "4.6.0" % "test",
+  "org.specs2" %% "specs2-mock" % "4.6.0" % "test",
 )

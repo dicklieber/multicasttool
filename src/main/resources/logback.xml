@@ -34,10 +34,10 @@
 
 
     <logger name="com.wa9nnn.multicasttool.Multicast" level="DEBUG"/>
-    <logger name="com.wa9nnn.multicasttool.wsjt" level="DEBUG"/>
+    <logger name="com.wa9nnn.multicasttool.wsjt" level="INFO"/>
 
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
 <!--        <appender-ref ref="ASYNC"/>-->
         <!--        <appender-ref ref="elk-requests" />-->

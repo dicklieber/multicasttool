@@ -2,8 +2,11 @@ package com.wa9nnn.multicasttool.wsjt
 
 import com.typesafe.scalalogging.LazyLogging
 
+import java.io.OutputStream
 import java.net.{DatagramPacket, InetAddress, MulticastSocket}
+import java.nio.file.{Files, Path, Paths}
 import java.util.concurrent.ArrayBlockingQueue
+import scala.util.{Failure, Success}
 
 object UDP extends App with LazyLogging {
   private val queue = new ArrayBlockingQueue[Message](100)
@@ -22,6 +25,9 @@ class UDP(multicastGroup: InetAddress, port: Int, queue: ArrayBlockingQueue[Mess
   var multicastSocket: MulticastSocket = new MulticastSocket(port);
   multicastSocket.setReuseAddress(true)
   multicastSocket.joinGroup(multicastGroup);
+  private val binCapture = new BinCapture()
+  //  private val path: Path = Paths.get("wsjtCapture.bin")
+  //  private val outputStream: OutputStream = Files.newOutputStream(path)
 
   var buf = new Array[Byte](1000);
 
@@ -32,15 +38,23 @@ class UDP(multicastGroup: InetAddress, port: Int, queue: ArrayBlockingQueue[Mess
       multicastSocket.receive(recv);
       val payloadBytes: Array[Byte] = recv.getData.take(recv.getLength)
 
-      val triedMessage = Parser(payloadBytes)
+      binCapture.write(payloadBytes)
 
-      triedMessage.foreach(queue.put)
+      val triedMessage = Decoder(payloadBytes)
 
+      triedMessage match {
+        case Failure(exception) =>
+          exception match {
+            case DecodeException(mt, cause) =>
+              println(s"mt: $mt :")
+              cause.printStackTrace()
+            case _ =>
 
+          }
+        case Success(message) =>
+          println(message)
+      }
 
-
-      //        if (recv.getAddress != localHost)
-      //        logger.info(s"Multicast: addr:${recv.getAddress} => ${localHost.getHostName}:${recv.getPort} message: $sData")
     } while (true)
 
   }).start()
