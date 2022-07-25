@@ -1,12 +1,12 @@
 package com.wa9nnn.multicasttool.wsjt
 
-import scala.util.Try
-import Parser._
 import com.typesafe.scalalogging.LazyLogging
-import com.wa9nnn.multicasttool.wsjt
-import com.wa9nnn.multicasttool.wsjt.DecodeMessage.{HeartbeatMessage, LoggedMessage}
-import org.apache.commons.codec.binary.Base64
 import com.wa9nnn.multicasttool.wsjt.MessageType._
+import com.wa9nnn.multicasttool.wsjt.Parser._
+import com.wa9nnn.multicasttool.wsjt.messages.{DecodeMessage, HeartbeatMessage, LoggedMessage, Message}
+import org.apache.commons.codec.binary.Base64
+
+import scala.util.Try
 object Decoder extends LazyLogging {
   val signature: Long = 0xADBCCBDA
   private val binCapture = new BinCapture()
@@ -23,7 +23,7 @@ object Decoder extends LazyLogging {
         throw new IllegalArgumentException(s"Expecting schema of ${3} but got $receivedSignature")
 
       val types: Array[MessageType] = MessageType.values()
-      implicit val messageType: MessageType = types(quint32.asInstanceOf[Int])
+      implicit val messageType: MessageType = types(quint32)
 
       implicit val base64bin = Option.when(logger.underlying.isDebugEnabled()) {
         Base64.encodeBase64String(in)

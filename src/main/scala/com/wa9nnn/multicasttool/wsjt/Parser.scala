@@ -1,7 +1,7 @@
 package com.wa9nnn.multicasttool.wsjt
 
 import com.typesafe.scalalogging.LazyLogging
-import com.wa9nnn.multicasttool.wsjt.Message.QDateTime
+import com.wa9nnn.multicasttool.wsjt.messages.Message.QDateTime
 import org.apache.commons.io.HexDump
 
 import java.nio.{ByteBuffer, ByteOrder}

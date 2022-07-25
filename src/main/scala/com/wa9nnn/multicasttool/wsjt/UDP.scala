@@ -1,6 +1,7 @@
 package com.wa9nnn.multicasttool.wsjt
 
 import com.typesafe.scalalogging.LazyLogging
+import com.wa9nnn.multicasttool.wsjt.messages.Message
 
 import java.net.{DatagramPacket, InetAddress, MulticastSocket}
 import java.util.concurrent.ArrayBlockingQueue
