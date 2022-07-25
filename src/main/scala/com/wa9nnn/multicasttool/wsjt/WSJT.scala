@@ -7,18 +7,18 @@ import java.net.{DatagramPacket, InetAddress, MulticastSocket}
 import java.util.concurrent.ArrayBlockingQueue
 import scala.util.{Failure, Success}
 
-object UDP extends App with LazyLogging {
+object WSJT extends App with LazyLogging {
   private val queue = new ArrayBlockingQueue[Message](100)
   val multicastAddress: InetAddress = InetAddress.getByName("224.0.0.2")
   val sign: Long = 0xadbccbda
-  new UDP(multicastAddress, 2237, queue)
+  new WSJT(multicastAddress, 2237, queue)
   while (true) {
     val qMessage: Message = queue.take()
     logger.info(qMessage.toString)
   }
 }
 
-class UDP(multicastGroup: InetAddress, port: Int, queue: ArrayBlockingQueue[Message]) extends LazyLogging {
+class WSJT(multicastGroup: InetAddress, port: Int, queue: ArrayBlockingQueue[Message]) extends LazyLogging {
   private val us = InetAddress.getLocalHost.getHostName
 
   var multicastSocket: MulticastSocket = new MulticastSocket(port);

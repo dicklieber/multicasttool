@@ -1,7 +1,7 @@
 package com.wa9nnn.multicasttool
 
 import com.typesafe.scalalogging.LazyLogging
-import com.wa9nnn.multicasttool.Message.fmt
+import com.wa9nnn.multicasttool.UdpMessage.fmt
 import play.api.libs.json.Json
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
@@ -83,7 +83,7 @@ class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
       val payloadBytes = bufferBytes.take(recv.getLength)
       val sData = new String(bufferBytes)
 
-      val message: Message = Json.parse(payloadBytes).as[Message]
+      val message: UdpMessage = Json.parse(payloadBytes).as[UdpMessage]
       logger.debug("Received: {}", message)
       val host = message.host
       val nodeStats = nodeMap.getOrElseUpdate(host, {
@@ -103,7 +103,7 @@ class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
   val sn = new AtomicLong()
 
   def send(): Unit = {
-    val message = Message(us, sn.incrementAndGet())
+    val message = UdpMessage(us, sn.incrementAndGet())
     val bytes = Json.toJson(message).toString().getBytes
 
     //      val message = s"multicast Message: $sn".getBytes()

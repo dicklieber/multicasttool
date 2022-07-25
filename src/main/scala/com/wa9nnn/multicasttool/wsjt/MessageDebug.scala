@@ -1,11 +1,11 @@
 package com.wa9nnn.multicasttool.wsjt
 
+import com.wa9nnn.multicasttool.util.JsonFormatUtils
 import org.apache.commons.codec.binary.Base64.{decodeBase64, encodeBase64String}
 import play.api.libs.json._
 
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
-import com.wa9nnn.multicasttool.wsjt.MessageTypeFormat._
 /**
  *
  * @param sn          of session
@@ -19,6 +19,7 @@ case class MessageDebug(sn: Int, received: Instant, messageType: MessageType, ba
 
 
 object MessageDebug {
+  implicit val mtFmt: Format[MessageType] = JsonFormatUtils.javaEnumFormat[MessageType]
   implicit val fmrDb: Format[MessageDebug] = Json.format[MessageDebug]
 
 
