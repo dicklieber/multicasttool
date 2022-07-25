@@ -3,7 +3,7 @@ package com.wa9nnn.multicasttool.wsjt
 import com.typesafe.scalalogging.LazyLogging
 import com.wa9nnn.multicasttool.wsjt.MessageType._
 import com.wa9nnn.multicasttool.wsjt.Parser._
-import com.wa9nnn.multicasttool.wsjt.messages.{ClearMessage, DecodeMessage, HeartbeatMessage, LoggedMessage, Message, StatusMessage}
+import com.wa9nnn.multicasttool.wsjt.messages.{AdifMessage, ClearMessage, DecodeMessage, HeartbeatMessage, LoggedMessage, Message, StatusMessage}
 import org.apache.commons.codec.binary.Base64
 
 import scala.util.Try
@@ -19,28 +19,34 @@ object Decoder extends LazyLogging {
         throw new IllegalArgumentException(s"Expecting signature of ${signature.toHexString} but got ${receivedSignature.toHexString}")
 
       val receivedSchemaVersion = quint32
-      if (receivedSchemaVersion != 2)
-        throw new IllegalArgumentException(s"Expecting schema of ${3} but got $receivedSignature")
+      if (receivedSchemaVersion > 3)
+        throw new IllegalArgumentException(s"Expecting schema of ${receivedSchemaVersion} but got $receivedSchemaVersion")
 
       val types: Array[MessageType] = MessageType.values()
-      implicit val messageType: MessageType = types(quint32)
+      implicit val messageType: MessageType = {
+        val nMt = quint32
+        try {
+          types(nMt)
+        } catch {
+          case e:ArrayIndexOutOfBoundsException =>
+            logger.error("Unknown message type: {}",nMt )
+            throw new IllegalArgumentException(e)
+        }
+      }
 
       implicit val base64bin = Option.when(logger.underlying.isDebugEnabled()) {
         Base64.encodeBase64String(in)
       }
 
-      val r = messageType match {
+      val r: Message = messageType match {
         case HEARTBEAT => HeartbeatMessage()
         case STATUS => StatusMessage()
         case DECODE => DecodeMessage()
         case CLEAR => ClearMessage()
-        case REPLY => throw NoHandlerException() //todo
         case QSO_LOGGED => LoggedMessage()
-        case CLOSE => throw NoHandlerException() //todo
-        case REPLAY => throw NoHandlerException() //todo
-        case HALT_TX => throw NoHandlerException() //todo
-        case FREE_TEXT => throw NoHandlerException() //todo
-        case WSPR_DECODE => throw NoHandlerException() //todo
+        case ADIF => AdifMessage()
+        case x =>
+          throw NoHandlerException()
       }
       binCapture.write(r.debug)
       r
