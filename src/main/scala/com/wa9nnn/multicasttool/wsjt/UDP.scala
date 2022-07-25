@@ -42,8 +42,10 @@ class UDP(multicastGroup: InetAddress, port: Int, queue: ArrayBlockingQueue[Mess
             case DecodeException(mt, cause) =>
               println(s"mt: $mt :")
               cause.printStackTrace()
-            case _ =>
-
+            case e:NoHandlerException =>
+              logger.error(e.getMessage)
+            case e:Throwable =>
+              logger.error("Unexpected Exception", e)
           }
         case Success(message) =>
           queue.put(message)

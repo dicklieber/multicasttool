@@ -3,7 +3,7 @@ package com.wa9nnn.multicasttool.wsjt
 import com.typesafe.scalalogging.LazyLogging
 import com.wa9nnn.multicasttool.wsjt.MessageType._
 import com.wa9nnn.multicasttool.wsjt.Parser._
-import com.wa9nnn.multicasttool.wsjt.messages.{DecodeMessage, HeartbeatMessage, LoggedMessage, Message}
+import com.wa9nnn.multicasttool.wsjt.messages.{ClearMessage, DecodeMessage, HeartbeatMessage, LoggedMessage, Message, StatusMessage}
 import org.apache.commons.codec.binary.Base64
 
 import scala.util.Try
@@ -30,19 +30,17 @@ object Decoder extends LazyLogging {
       }
 
       val r = messageType match {
-        case HEARTBEAT =>
-          HeartbeatMessage()
-        case STATUS => throw new NotImplementedError() //todo
-        //        case DECODE => throw new NotImplementedError() //todo
+        case HEARTBEAT => HeartbeatMessage()
+        case STATUS => StatusMessage()
         case DECODE => DecodeMessage()
-        case CLEAR => throw new NotImplementedError() //todo
-        case REPLY => throw new NotImplementedError() //todo
+        case CLEAR => ClearMessage()
+        case REPLY => throw NoHandlerException() //todo
         case QSO_LOGGED => LoggedMessage()
-        case CLOSE => throw new NotImplementedError() //todo
-        case REPLAY => throw new NotImplementedError() //todo
-        case HALT_TX => throw new NotImplementedError() //todo
-        case FREE_TEXT => throw new NotImplementedError() //todo
-        case WSPR_DECODE => throw new NotImplementedError() //todo
+        case CLOSE => throw NoHandlerException() //todo
+        case REPLAY => throw NoHandlerException() //todo
+        case HALT_TX => throw NoHandlerException() //todo
+        case FREE_TEXT => throw NoHandlerException() //todo
+        case WSPR_DECODE => throw NoHandlerException() //todo
       }
       binCapture.write(r.debug)
       r
@@ -51,5 +49,7 @@ object Decoder extends LazyLogging {
 
 
 }
+
+case class NoHandlerException()(implicit messageType: MessageType) extends Exception(s"No Handler for: $messageType")
 
 case class DecodeException(messageType: MessageType, cause: Throwable) extends Throwable

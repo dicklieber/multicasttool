@@ -18,6 +18,7 @@ object Message {
   type Utf8 = String
   type QBool = Boolean
   // Java/Scala doesn't have unsinged types. Hoping the signed version will be big enough.
+  type Quint8 = Byte
   type Quint32 = Int
   type Quint64 = Long
   type QDateTime = Instant
