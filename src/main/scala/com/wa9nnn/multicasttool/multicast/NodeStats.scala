@@ -1,9 +1,7 @@
-package com.wa9nnn.multicasttool
+package com.wa9nnn.multicasttool.multicast
 
 import com.codahale.metrics.Meter
-import scalafx.beans.property.{LongProperty, ObjectProperty, StringProperty}
-
-import java.util.concurrent.atomic.AtomicInteger
+import scalafx.beans.property.{ObjectProperty, StringProperty}
 
 case class NodeStats(intialMessage: UdpMessage) {
   val host: StringProperty = StringProperty(intialMessage.host)

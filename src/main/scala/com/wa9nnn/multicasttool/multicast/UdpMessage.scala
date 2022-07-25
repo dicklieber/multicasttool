@@ -1,4 +1,4 @@
-package com.wa9nnn.multicasttool
+package com.wa9nnn.multicasttool.multicast
 
 import play.api.libs.json.{Json, OFormat}
 

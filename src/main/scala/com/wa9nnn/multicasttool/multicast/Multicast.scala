@@ -1,63 +1,12 @@
-package com.wa9nnn.multicasttool
+package com.wa9nnn.multicasttool.multicast
 
 import com.typesafe.scalalogging.LazyLogging
-import com.wa9nnn.multicasttool.UdpMessage.fmt
 import play.api.libs.json.Json
-import scalafx.application.JFXApp
-import scalafx.application.JFXApp.PrimaryStage
-import scalafx.beans.property.ObjectProperty
 import scalafx.collections.ObservableBuffer
-import scalafx.scene.Scene
-import scalafx.scene.control.TableColumn._
-import scalafx.scene.control.{TableColumn, TableView}
 
 import java.net.{DatagramPacket, InetAddress, MulticastSocket}
 import java.util.concurrent.atomic.AtomicLong
-import java.util.{Timer, TimerTask}
 import scala.collection.concurrent.TrieMap
-
-object MulticastTool extends JFXApp {
-  val multicastAddress: InetAddress = InetAddress.getByName("239.73.88.0")
-  val timer = new Timer("SendTimer", true)
-  private val multicast: Multicast = new Multicast(multicastAddress, 1174)
-
-  timer.scheduleAtFixedRate(new TimerTask {
-    override def run(): Unit = {
-      multicast.send()
-    }
-  }, 10L, 1000L)
-
-
-  stage = new PrimaryStage {
-    title = "Multicast Stats"
-    scene = new Scene {
-      content = new TableView[NodeStats](multicast.nodes) {
-        columns ++= List(
-          new TableColumn[NodeStats, String] {
-            text = "Host"
-            cellValueFactory = _.value.host
-            prefWidth = 180
-          },
-          new TableColumn[NodeStats, Long] {
-            text = "Count"
-            cellValueFactory = _.value.totalReceived
-            prefWidth = 125
-          },
-          new TableColumn[NodeStats, Long] {
-            text = "S/N"
-            cellValueFactory = _.value.lastSn
-            prefWidth = 125
-          }
-//          new TableColumn[NodeStats, String]() {
-//            text = "LastMessage"
-//            cellValueFactory = _.value.lastMessage
-//            prefWidth = 250
-//          }
-        )
-      }
-    }
-  }
-}
 
 class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
   private val us = InetAddress.getLocalHost.getHostName
@@ -87,7 +36,7 @@ class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
       logger.debug("Received: {}", message)
       val host = message.host
       val nodeStats = nodeMap.getOrElseUpdate(host, {
-       val ns =  NodeStats(message)
+        val ns =  NodeStats(message)
         nodes.addOne(ns)
         ns
       })
