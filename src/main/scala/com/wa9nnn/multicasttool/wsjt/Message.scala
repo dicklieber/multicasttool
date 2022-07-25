@@ -36,7 +36,7 @@ case class DecodeMessage(id: Utf8,
 
 object DecodeMessage {
   def apply()(implicit parser: Parser, mt: MessageType, bin: Option[String]): DecodeMessage = {
-    new DecodeMessage(
+    val message = new DecodeMessage(
       id = utf8,
       newDecode = bool(),
       time = qtime(),
@@ -48,6 +48,7 @@ object DecodeMessage {
       lowConfidence = bool(),
       debug = bin.map(MessageDebug(mt, _))
     )
+    message
   }
 
 
@@ -115,13 +116,14 @@ object DecodeMessage {
 
   object HeartbeatMessage {
     def apply()(implicit parser: Parser, mt: MessageType, bin: Option[String]): HeartbeatMessage = {
-      new HeartbeatMessage(
+      val message = new HeartbeatMessage(
         id = utf8(),
         maxSchemaNumber = quint32(),
         version = utf8(),
         revision = utf8(),
         debug = bin.map(MessageDebug(mt, _))
       )
+      message
     }
   }
 }

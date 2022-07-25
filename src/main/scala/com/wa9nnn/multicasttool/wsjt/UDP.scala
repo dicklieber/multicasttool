@@ -13,7 +13,7 @@ object UDP extends App with LazyLogging {
   new UDP(multicastAddress, 2237, queue)
   while (true) {
     val qMessage: Message = queue.take()
-    logger.info(Option(qMessage).toString)
+    logger.info(qMessage.toString)
   }
 }
 
@@ -45,7 +45,7 @@ class UDP(multicastGroup: InetAddress, port: Int, queue: ArrayBlockingQueue[Mess
 
           }
         case Success(message) =>
-          println(message)
+          queue.put(message)
       }
 
     } while (true)
