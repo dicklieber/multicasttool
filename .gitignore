@@ -5,3 +5,4 @@
 /.bsp/sbt.json
 .DS_Store
 /project/project/target/
+/wsjtCapture.txt
