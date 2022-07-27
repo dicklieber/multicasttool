@@ -19,13 +19,15 @@ lazy val root = (project in file("."))
   .settings(
     name := "MulticastTool"
   )
+resolvers += ("Reposilite" at  "http://194.113.64.105:8080/releases").withAllowInsecureProtocol(true)
 
 makeDeploymentSettings(Universal, packageBin in Universal, "zip")
 
 val logbackVersion = "1.2.3"
 
 libraryDependencies ++= Seq(
-  "org.scalafx" %% "scalafx" % "18.0.1-R27",
+  "org.scalafx" %% "scalafx" % "18.0.2-R29",
+  "com.wa9nnn" %% "util" % "0.1.6",
   "io.dropwizard.metrics" % "metrics-core" % "4.2.1",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   "ch.qos.logback" % "logback-classic" % logbackVersion,

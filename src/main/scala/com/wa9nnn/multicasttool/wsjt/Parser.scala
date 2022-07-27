@@ -67,7 +67,6 @@ object Parser extends LazyLogging {
       import java.time.LocalDate
       import java.time.temporal.JulianFields
       val localDate1 = LocalDate.MIN.`with`(JulianFields.JULIAN_DAY, qtDay)
-      localDate1
       val localDateTime = LocalDateTime.of(localDate1, localTime)
       logger.info("localDateTime: {}", localDateTime.toString)
       val instant = localDateTime.toInstant(ZoneOffset.UTC)
