@@ -35,7 +35,8 @@ object Message {
   type QFloat = Double
 
   private val snSource = new AtomicLong()
-  def nexSn:Long = snSource.incrementAndGet()
+
+  def nexSn: Long = snSource.incrementAndGet()
 
   implicit def dbg(implicit mt: MessageType, bin: Option[String]): Option[MessageDebug] = {
     bin.map(MessageDebug(mt, _))
@@ -262,8 +263,13 @@ case class StatusMessage(
                           txMessage: Utf8,
                           debug: Option[MessageDebug] = None) extends Message {
   override def detail: String = {
-    val mhz: Double = dialFrequency * 1000000.0
-    f"$mhz%,.5f Mhz $txMode"
+    dialFreq
+  }
+
+  def dialFreq: String = {
+    val mhz: Double = dialFrequency / 1000000.0
+    f"$mhz%,.4f Mhz"
+
   }
 
 }

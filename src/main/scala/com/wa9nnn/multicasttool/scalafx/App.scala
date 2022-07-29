@@ -1,9 +1,8 @@
 package com.wa9nnn.multicasttool.scalafx
 
 import scalafx.Includes._
-
 import com.wa9nnn.multicasttool.multicast.{Multicast, NodeStats}
-import com.wa9nnn.multicasttool.scalafx.wsjt.WSJTThing
+import com.wa9nnn.multicasttool.scalafx.wsjt.{MessagesPane, StatusPane, WSJTThing}
 import com.wa9nnn.util.HostAndPort
 import scalafx.application.JFXApp3
 import scalafx.scene.Scene
@@ -19,14 +18,8 @@ object App extends JFXApp3 {
   private val multicast: Multicast = new Multicast(multicastAddress, 1174)
 
 
-
-  private val wsjt = new WSJTThing(HostAndPort("224.0.0.2:2237", 2237), 50)
-  println(wsjt)
-
-
-
   override def start(): Unit = {
-     val multicastPane = new BorderPane {
+    val multicastPane = new BorderPane {
       top = new Label("Multicast Stats Pane")
       center = new TableView[NodeStats](multicast.nodes) {
         columns ++= List(
@@ -54,6 +47,10 @@ object App extends JFXApp3 {
       }
     }
 
+    val statusPane = new StatusPane()
+    val messagesPane = new MessagesPane
+    val wsjt = new WSJTThing(HostAndPort("224.0.0.2:2237", 2237), 50, statusPane, messagesPane)
+
     timer.scheduleAtFixedRate(new TimerTask {
       override def run(): Unit = {
         multicast.send()
@@ -63,7 +60,12 @@ object App extends JFXApp3 {
     stage = new JFXApp3.PrimaryStage {
       title = "Multicast Stats"
       scene = new Scene {
-        content = new HBox(multicastPane)
+        val cssUrl: String = getClass.getResource("/scalafx.css").toExternalForm
+        stylesheets += cssUrl
+
+
+        content = new HBox(multicastPane,
+          statusPane, messagesPane)
       }
     }
   }
