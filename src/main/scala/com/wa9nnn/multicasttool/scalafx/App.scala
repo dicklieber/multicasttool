@@ -1,9 +1,9 @@
 package com.wa9nnn.multicasttool.scalafx
 
-import scalafx.Includes._
 import com.wa9nnn.multicasttool.multicast.{Multicast, NodeStats}
 import com.wa9nnn.multicasttool.scalafx.wsjt.{MessagesPane, StatusPane, WSJTThing}
 import com.wa9nnn.util.HostAndPort
+import scalafx.Includes._
 import scalafx.application.JFXApp3
 import scalafx.scene.Scene
 import scalafx.scene.control.{Label, TableColumn, TableView}
@@ -31,12 +31,17 @@ object App extends JFXApp3 {
           new TableColumn[NodeStats, Long] {
             text = "Count"
             cellValueFactory = _.value.totalReceived
-            prefWidth = 125
+            prefWidth = 35
           },
           new TableColumn[NodeStats, Long] {
             text = "S/N"
             cellValueFactory = _.value.lastSn
-            prefWidth = 125
+            prefWidth = 35
+          },
+          new TableColumn[NodeStats, String] {
+            text = "Since"
+            cellValueFactory = _.value.since
+            prefWidth = 100
           }
           //          new TableColumn[NodeStats, String]() {
           //            text = "LastMessage"
