@@ -106,8 +106,8 @@ case class ClearMessage(
 }
 
 object ClearMessage {
-  def apply()(implicit parser: Parser, mt: MessageType, bin: Option[String]): CloseMessage = {
-    val message = new CloseMessage(
+  def apply()(implicit parser: Parser, mt: MessageType, bin: Option[String]): ClearMessage = {
+    val message = new ClearMessage(
       messageType = mt,
       id = utf8(),
       debug = dbg
@@ -115,7 +115,6 @@ object ClearMessage {
     message
   }
 }
-
 
 case class CloseMessage(
                          messageType: MessageType,

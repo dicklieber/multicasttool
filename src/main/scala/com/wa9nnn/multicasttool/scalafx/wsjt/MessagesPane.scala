@@ -18,11 +18,8 @@
 
 package com.wa9nnn.multicasttool.scalafx.wsjt
 
-import com.wa9nnn.multicasttool.multicast.NodeStats
-import com.wa9nnn.multicasttool.scalafx.App.multicast
-import com.wa9nnn.multicasttool.wsjt.MessageType
-import com.wa9nnn.multicasttool.wsjt.messages.Message
-import scalafx.beans.property.{ReadOnlyProperty, ReadOnlyStringWrapper}
+import com.wa9nnn.multicasttool.wsjt.messages.{AdifMessage, ClearMessage, CloseMessage, DecodeMessage, HeartbeatMessage, LoggedMessage, Message, StatusMessage, TestMessage}
+import scalafx.beans.property.ReadOnlyStringWrapper
 import scalafx.scene.control.{Label, TableColumn, TableView}
 import scalafx.scene.layout.BorderPane
 
@@ -64,6 +61,11 @@ class MessagesPane extends BorderPane {
 
 
   def add(message: Message): Unit = {
-    messageCircularBuffer.add(message)
+    message match {
+      case cm:ClearMessage =>
+        messageCircularBuffer.clear()
+      case x =>
+        messageCircularBuffer.add(message)
+    }
   }
 }

@@ -3,7 +3,7 @@ package com.wa9nnn.multicasttool.wsjt
 import com.typesafe.scalalogging.LazyLogging
 import com.wa9nnn.multicasttool.wsjt.MessageType._
 import com.wa9nnn.multicasttool.wsjt.Parser._
-import com.wa9nnn.multicasttool.wsjt.messages.{AdifMessage, CloseMessage, DecodeMessage, HeartbeatMessage, LoggedMessage, Message, StatusMessage}
+import com.wa9nnn.multicasttool.wsjt.messages.{AdifMessage, ClearMessage, CloseMessage, DecodeMessage, HeartbeatMessage, LoggedMessage, Message, StatusMessage}
 import org.apache.commons.codec.binary.Base64
 
 import scala.util.Try
@@ -42,7 +42,7 @@ object Decoder extends LazyLogging {
         case HEARTBEAT => HeartbeatMessage()
         case STATUS => StatusMessage()
         case DECODE => DecodeMessage()
-        case CLEAR => CloseMessage()
+        case CLEAR => ClearMessage()
         case QSO_LOGGED => LoggedMessage()
         case ADIF => AdifMessage()
         case CLOSE => CloseMessage()

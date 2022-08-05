@@ -33,7 +33,7 @@
 <!--    </appender>-->
 
 
-    <logger name="com.wa9nnn.multicasttool.multicast.Multicast" level="INFO"/>
+    <logger name="com.wa9nnn.multicasttool.multicast.Multicast" level="DEBUG"/>
     <logger name="com.wa9nnn.multicasttool.wsjt" level="INFO"/>
     <logger name="com.wa9nnn.multicasttool.wsjt.Decoder" level="INFO"/>
     <logger name="com.wa9nnn.multicasttool.scalafx.wsjt.WSJTThing" level="INFO"/>

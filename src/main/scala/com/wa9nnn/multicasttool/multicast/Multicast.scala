@@ -5,19 +5,20 @@ import org.scalafx.extras.onFX
 import play.api.libs.json.Json
 import scalafx.collections.ObservableBuffer
 
-import java.net.{DatagramPacket, InetAddress, MulticastSocket}
-import java.util.{Timer, TimerTask}
+import java.net._
 import java.util.concurrent.atomic.AtomicLong
+import java.util.{Timer, TimerTask}
 import scala.collection.concurrent.TrieMap
 
 class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
-  private val us = InetAddress.getLocalHost.getHostName
+  val localHost: InetAddress = InetAddress.getLocalHost
+  val us: String = localHost.getHostName
   private val nodeMap = new TrieMap[String, NodeStats]()
-  private val timer = new Timer("PropertyCellTimer", true)
-  timer.scheduleAtFixedRate(new TimerTask {
+  private val tickTimer = new Timer("PropertyCellTimer", true)
+  tickTimer.scheduleAtFixedRate(new TimerTask {
     override def run(): Unit = {
       onFX {
-       nodeMap.values.foreach(_.tick())
+        nodeMap.values.foreach(_.tick())
       }
     }
   }, 5, 750)
@@ -26,13 +27,27 @@ class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
 
 
   val nodes: ObservableBuffer[NodeStats] = ObservableBuffer[NodeStats]()
-  //  (
-  //    new NodeStats(Message(InetAddress.getLocalHost, 42))
-  //  )
 
-  var multicastSocket: MulticastSocket = new MulticastSocket(port);
-  multicastSocket.setReuseAddress(true)
-  multicastSocket.joinGroup(multicastGroup);
+  var receiveSocket: MulticastSocket = new MulticastSocket(port);
+  receiveSocket.setReuseAddress(true)
+  receiveSocket.joinGroup(multicastGroup)
+
+  def shutdown(): Unit = {
+    logger.debug("cancel send timer")
+    tickTimer.cancel()
+
+    logger.debug("Leaving group: {}", multicastGroup.toString)
+    try {
+      sendtimer.cancel()
+      sendSocket.close()
+
+      receiveSocket.leaveGroup(multicastGroup)
+      receiveSocket.close()
+    } catch {
+      case e: Throwable =>
+        logger.error("Error leaving group: {}", e, multicastGroup)
+    }
+  }
 
   var buf = new Array[Byte](1000);
 
@@ -40,15 +55,17 @@ class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
     logger.info(s"Listening on ${
       multicastGroup.getHostName
     }:$port")
+    var ongoing = true
     do {
       try {
         val recv: DatagramPacket = new DatagramPacket(buf, buf.length);
-        multicastSocket.receive(recv);
+        receiveSocket.receive(recv);
         val bufferBytes: Array[Byte] = recv.getData
         val payloadBytes = bufferBytes.take(recv.getLength)
-        val sData = new String(bufferBytes)
 
         val message: UdpMessage = Json.parse(payloadBytes).as[UdpMessage]
+
+        message.copy(source = Option(recv.getAddress.toString))
         logger.debug("Received: {}", message)
         val host = message.host
         val nodeStats = nodeMap.getOrElseUpdate(host, {
@@ -58,24 +75,44 @@ class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
         })
         nodeStats.add(message)
       } catch {
+        case e: SocketException =>
+          logger.debug("Receive socket closed.")
+          ongoing = false
         case e: Throwable =>
-          logger.error("Receive loop", e)
+          logger.error("Exception Receive loop", e)
       }
 
 
       //        if (recv.getAddress != localHost)
       //        logger.info(s"Multicast: addr:${recv.getAddress} => ${localHost.getHostName}:${recv.getPort} message: $sData")
-    } while (true)
+    } while (ongoing)
 
   }).start()
 
-   def send(): Unit = {
+  val sendSocket = new DatagramSocket()
+  sendSocket.setReuseAddress(true)
+
+  val sendtimer = new Timer("SendTimer", true)
+
+  sendtimer.scheduleAtFixedRate(new TimerTask {
+    override def run(): Unit = {
+      send()
+    }
+  }, 10L, 1000L)
+
+
+  def send(): Unit = {
     val message = UdpMessage(us, sn.incrementAndGet())
     val bytes = Json.toJson(message).toString().getBytes
 
     //      val message = s"multicast Message: $sn".getBytes()
     val datagramPacket = new DatagramPacket(bytes, bytes.length, multicastGroup, port)
-    multicastSocket.send(datagramPacket)
-    logger.debug("Sent: {}", message)
+    try {
+      sendSocket.send(datagramPacket)
+      logger.debug("Sent: {}", message)
+    } catch {
+      case e: SocketException =>
+        logger.debug("Send socket closed")
+    }
   }
 }

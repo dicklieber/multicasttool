@@ -32,6 +32,14 @@
 
 }
 
+.tooOld {
+    -fx-background-color: red;
+}
+
+.isNew{
+    -fx-background-color: white;
+
+}
 
 .statCell {
 

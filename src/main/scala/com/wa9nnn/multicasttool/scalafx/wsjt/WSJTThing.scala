@@ -20,7 +20,7 @@ package com.wa9nnn.multicasttool.scalafx.wsjt
 
 import com.typesafe.scalalogging.LazyLogging
 import com.wa9nnn.multicasttool.wsjt.WSJT
-import com.wa9nnn.multicasttool.wsjt.messages.{HeartbeatMessage, Message, StatusMessage}
+import com.wa9nnn.multicasttool.wsjt.messages.{ClearMessage, HeartbeatMessage, Message, StatusMessage}
 import com.wa9nnn.util.HostAndPort
 import scalafx.beans.property.ObjectProperty
 
