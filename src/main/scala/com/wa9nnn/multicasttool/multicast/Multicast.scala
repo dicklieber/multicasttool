@@ -1,6 +1,7 @@
 package com.wa9nnn.multicasttool.multicast
 
 import com.typesafe.scalalogging.LazyLogging
+import com.wa9nnn.util.HostAndPort
 import org.scalafx.extras.onFX
 import play.api.libs.json.Json
 import scalafx.collections.ObservableBuffer
@@ -10,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.{Timer, TimerTask}
 import scala.collection.concurrent.TrieMap
 
-class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
+class Multicast(hostAndPort: HostAndPort) extends LazyLogging {
   val localHost: InetAddress = InetAddress.getLocalHost
   val us: String = localHost.getHostName
   private val nodeMap = new TrieMap[String, NodeStats]()
@@ -23,20 +24,23 @@ class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
     }
   }, 5, 750)
 
+
+  val multicastGroup = hostAndPort.toInetAddress
   val sn = new AtomicLong()
 
 
   val nodes: ObservableBuffer[NodeStats] = ObservableBuffer[NodeStats]()
 
-  var receiveSocket: MulticastSocket = new MulticastSocket(port);
+  var receiveSocket: MulticastSocket = new MulticastSocket(hostAndPort.port);
   receiveSocket.setReuseAddress(true)
-  receiveSocket.joinGroup(multicastGroup)
+
+  receiveSocket.joinGroup(hostAndPort.toSocketAddress.getAddress)
 
   def shutdown(): Unit = {
     logger.debug("cancel send timer")
     tickTimer.cancel()
 
-    logger.debug("Leaving group: {}", multicastGroup.toString)
+    logger.debug("Leaving group: {}", hostAndPort)
     try {
       sendtimer.cancel()
       sendSocket.close()
@@ -54,7 +58,7 @@ class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
   new Thread(() => {
     logger.info(s"Listening on ${
       multicastGroup.getHostName
-    }:$port")
+    }:${hostAndPort.port}")
     var ongoing = true
     do {
       try {
@@ -91,6 +95,7 @@ class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
 
   val sendSocket = new DatagramSocket()
   sendSocket.setReuseAddress(true)
+  sendSocket.isBound
 
   val sendtimer = new Timer("SendTimer", true)
 
@@ -102,11 +107,16 @@ class Multicast(multicastGroup: InetAddress, port: Int) extends LazyLogging {
 
 
   def send(): Unit = {
+
+    val bound = sendSocket.isBound
+    val connected = sendSocket.isConnected
+
+
     val message = UdpMessage(us, sn.incrementAndGet())
     val bytes = Json.toJson(message).toString().getBytes
 
     //      val message = s"multicast Message: $sn".getBytes()
-    val datagramPacket = new DatagramPacket(bytes, bytes.length, multicastGroup, port)
+    val datagramPacket = new DatagramPacket(bytes, bytes.length, multicastGroup, hostAndPort.port)
     try {
       sendSocket.send(datagramPacket)
       logger.debug("Sent: {}", message)

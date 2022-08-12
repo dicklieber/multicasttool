@@ -13,9 +13,11 @@ import scalafx.scene.layout.{BorderPane, HBox}
 import java.net.InetAddress
 
 object App extends JFXApp3 with LazyLogging {
-  val multicastAddress: InetAddress = InetAddress.getByName("239.73.88.0")
-  //  val timer = new Timer("SendTimer", true)
-  private val multicast: Multicast = new Multicast(multicastAddress, 1174)
+
+  //  private val mcHostAndPort = HostAndPort(Option(System.getProperty("multicastgroup")).getOrElse("239.73.88.0:1174"), 1174)
+  //  val multicastAddress: InetAddress = InetAddress.getByName(mcHostAndPort.host)
+
+  private val multicast: Multicast = new Multicast(hostAndPort("multicast", "239.73.88.0", 1174))
 
 
   override def stopApp(): Unit = {
@@ -54,15 +56,15 @@ object App extends JFXApp3 with LazyLogging {
 
     val statusPane = new StatusPane()
     val messagesPane = new MessagesPane
-    new WSJTThing(HostAndPort("224.0.0.2:2237", 2237), 50, statusPane, messagesPane)
+    new WSJTThing(hostAndPort("wsjt","224.0.0.3", 2237), 50, statusPane, messagesPane)
 
-    val multicastTab =  new Tab {
+    val multicastTab = new Tab {
       text = "Multicast Data"
       closable = false
       content = multicastPane
     }
 
-    val wsjtTab = new Tab{
+    val wsjtTab = new Tab {
       text = "WSJT"
       closable = false
       content = new HBox(statusPane, messagesPane)
@@ -76,11 +78,17 @@ object App extends JFXApp3 with LazyLogging {
         val cssUrl: String = getClass.getResource("/scalafx.css").toExternalForm
         stylesheets += cssUrl
 
-        content = new TabPane{
+        content = new TabPane {
           tabs = Seq(multicastTab, wsjtTab)
         }
       }
     }
+  }
+
+  def hostAndPort(propName: String, default: String, defaultPort: Int): HostAndPort = {
+    val ret = HostAndPort(Option(System.getProperty(propName)).getOrElse(default), defaultPort)
+    logger.info(s"{}: {}", propName, ret)
+    ret
   }
 
 }

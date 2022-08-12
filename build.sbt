@@ -30,7 +30,7 @@ Compile/mainClass := Some("com.wa9nnn.multicasttool.scalafx.App")
 libraryDependencies ++= Seq(
   "org.scalafx" %% "scalafx" % "18.0.2-R29",
   "org.scalafx" %% "scalafx-extras" % "0.7.0",
-  "com.wa9nnn" %% "util" % "0.1.7",
+  "com.wa9nnn" %% "util" % "0.1.8",
   "io.dropwizard.metrics" % "metrics-core" % "4.2.1",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   "ch.qos.logback" % "logback-classic" % logbackVersion,
