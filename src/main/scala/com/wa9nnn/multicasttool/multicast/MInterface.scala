@@ -55,15 +55,16 @@ object MInterface extends App with LazyLogging {
   */
 
   val ipAddresses: List[(InetAddress, NetworkInterface)] = {
-    for {
+    (for {
       interface <- iterfaces
       inetAddress <- interface.getInetAddresses.asScala
       if inetAddress.isInstanceOf[Inet4Address]
     } yield {
       inetAddress -> interface
     }
+      ).sortBy(_._1.isLoopbackAddress)
   }
-  ipAddresses.sortBy(_._1.isLoopbackAddress).foreach { ipa =>
+  ipAddresses.foreach { ipa =>
     println(s"${ipa._2}: ${ipa._1}")
   }
 
