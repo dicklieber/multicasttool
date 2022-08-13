@@ -1,6 +1,7 @@
 package com.wa9nnn.multicasttool.multicast
 
 import com.typesafe.scalalogging.LazyLogging
+import com.wa9nnn.multicasttool.multicast.MInterface.{iterfaces, logger}
 import com.wa9nnn.util.HostAndPort
 import org.scalafx.extras.onFX
 import play.api.libs.json.Json
@@ -10,6 +11,8 @@ import java.net._
 import java.util.concurrent.atomic.AtomicLong
 import java.util.{Timer, TimerTask}
 import scala.collection.concurrent.TrieMap
+import scala.jdk.CollectionConverters.EnumerationHasAsScala
+import scala.jdk.StreamConverters.StreamHasToScala
 
 class Multicast(hostAndPort: HostAndPort) extends LazyLogging {
   val localHost: InetAddress = InetAddress.getLocalHost
@@ -34,21 +37,48 @@ class Multicast(hostAndPort: HostAndPort) extends LazyLogging {
 
   var receiveSocket: MulticastSocket = new MulticastSocket(hostAndPort.port);
   receiveSocket.setReuseAddress(true)
-  val nif: NetworkInterface = NetworkInterface.getByName("en7")
-  receiveSocket.setNetworkInterface(nif)
 
-  receiveSocket.joinGroup(hostAndPort.toSocketAddress.getAddress)
+  private val iterfaces: List[NetworkInterface] = NetworkInterface.networkInterfaces().toScala(List)
+
+  val ipAddresses: List[(InetAddress, NetworkInterface)] = {
+    (for {
+      interface <- iterfaces
+      inetAddress <- interface.getInetAddresses.asScala
+      if inetAddress.isInstanceOf[Inet4Address]
+    } yield {
+      inetAddress -> interface
+    }
+      ).sortBy(_._1.isLoopbackAddress)
+  }
+  ipAddresses.foreach { ipa =>
+    println(s"${ipa._2}: ${ipa._1}")
+  }
+
+  ipAddresses.length match {
+    case 2 =>
+      logger.info(s"Only one IPV4")
+    case 1 =>
+      logger.info(s"Only $ipAddresses.head available, probably loopback.")
+    case 0 =>
+      throw new IllegalStateException("No IPV4 IP addresses!")
+    case x =>
+      logger.error("Multiple ipv4 available! Using first.")
+  }
+  private val choosenInterface: NetworkInterface = ipAddresses.head._2
+
+
+  receiveSocket.joinGroup(hostAndPort.toSocketAddress, choosenInterface)
 
   def shutdown(): Unit = {
-    logger.debug("cancel send timer")
+    logger.info("cancel send timer")
     tickTimer.cancel()
 
-    logger.debug("Leaving group: {}", hostAndPort)
+    logger.info("Leaving group: {}", hostAndPort)
     try {
       sendtimer.cancel()
       sendSocket.close()
 
-      receiveSocket.leaveGroup(multicastGroup)
+      receiveSocket.leaveGroup(receiveSocket.getLocalSocketAddress, choosenInterface)
       receiveSocket.close()
     } catch {
       case e: Throwable =>
