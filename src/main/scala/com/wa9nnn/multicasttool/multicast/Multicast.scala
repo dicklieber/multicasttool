@@ -26,6 +26,7 @@ class Multicast(hostAndPort: HostAndPort) extends LazyLogging {
 
 
   val multicastGroup = hostAndPort.toInetAddress
+
   val sn = new AtomicLong()
 
 
@@ -33,6 +34,8 @@ class Multicast(hostAndPort: HostAndPort) extends LazyLogging {
 
   var receiveSocket: MulticastSocket = new MulticastSocket(hostAndPort.port);
   receiveSocket.setReuseAddress(true)
+  val nif: NetworkInterface = NetworkInterface.getByName("en7")
+  receiveSocket.setNetworkInterface(nif)
 
   receiveSocket.joinGroup(hostAndPort.toSocketAddress.getAddress)
 
