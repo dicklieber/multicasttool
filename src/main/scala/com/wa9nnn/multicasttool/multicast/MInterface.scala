@@ -31,7 +31,7 @@ import scala.io.StdIn.readLine
 
 object MInterface extends App with LazyLogging {
 
-  val hostAndPort = HostAndPort("239.73.88.0", 1174)
+  val hostAndPort = HostAndPort("239.73.88.10", 1174)
 
   val multicastGroup = hostAndPort.toInetAddress
 
@@ -40,19 +40,7 @@ object MInterface extends App with LazyLogging {
   private val current: NetworkInterface = receiveSocket.getNetworkInterface
   private val iterfaces: List[NetworkInterface] = NetworkInterface.networkInterfaces().toScala(List)
 
-  /*
-    iterfaces.foreach { interface =>
-      println(interface)
-      val inetAddresses = interface.getInetAddresses
-      println(s"\tinetAddresses: $inetAddresses")
-      val list: mutable.Seq[InterfaceAddress] = interface.getInterfaceAddresses.asScala
-      list.foreach { sif =>
 
-        println(s"\t\tsif: $sif")
-
-      }
-    }
-  */
 
   val ipAddresses: List[(InetAddress, NetworkInterface)] = {
     (for {
@@ -81,12 +69,19 @@ object MInterface extends App with LazyLogging {
   private val choosenInterface: NetworkInterface = ipAddresses.head._2
 
   logger.info("Using {}", choosenInterface)
-  var buf = new Array[Byte](1000);
+
+ var buf = new Array[Byte](1000);
 
 //  private val nif: NetworkInterface = NetworkInterface.getByName("en7")
   receiveSocket.setNetworkInterface(choosenInterface)
-  receiveSocket.joinGroup(hostAndPort.toSocketAddress, choosenInterface)
+  try {
+    receiveSocket.joinGroup(hostAndPort.toSocketAddress, choosenInterface)
+  } catch {
+    case e:Exception =>
+      e.printStackTrace()
+  }
   private val interface: NetworkInterface = receiveSocket.getNetworkInterface
+//  private val interface: NetworkInterface = receiveSocket.getNetworkInterface
   private val localPort: Int = receiveSocket.getLocalPort
 
   new Thread(() => {
@@ -128,6 +123,7 @@ object MInterface extends App with LazyLogging {
   }).start()
 
   private val str: String = readLine()
+//  receiveSocket.leaveGroup(hostAndPort.toInetAddress)
   receiveSocket.leaveGroup(hostAndPort.toSocketAddress, choosenInterface)
 
 }

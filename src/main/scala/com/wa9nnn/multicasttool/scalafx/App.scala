@@ -56,7 +56,7 @@ object App extends JFXApp3 with LazyLogging {
 
     val statusPane = new StatusPane()
     val messagesPane = new MessagesPane
-    new WSJTThing(hostAndPort("wsjt","224.0.0.3", 2237), 50, statusPane, messagesPane)
+    new WSJTThing(hostAndPort("wsjt", "224.0.0.3", 2237), 50, statusPane, messagesPane)
 
     val multicastTab = new Tab {
       text = "Multicast Data"

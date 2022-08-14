@@ -14,7 +14,7 @@ import java.time.{Duration, Instant}
  */
 case class NodeStats(intialMessage: UdpMessage) {
   private var lastStamp = Instant.EPOCH
-  val host: StringProperty = StringProperty(intialMessage.host)
+  val host: StringProperty = StringProperty(intialMessage.protocol + ":" + intialMessage.host)
   val totalReceived: ObjectProperty[Long] = new ObjectProperty[Long](this, "TotalVCount", 0)
   val lastSn: ObjectProperty[Long] = new ObjectProperty[Long](this, "S/N", 0)
   private var missed = 0
@@ -39,3 +39,4 @@ case class NodeStats(intialMessage: UdpMessage) {
     totalReceived() = totalReceived.value + 1L
   }
 }
+

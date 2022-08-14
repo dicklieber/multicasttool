@@ -1,7 +1,7 @@
 package com.wa9nnn.multicasttool.multicast
 
 import com.typesafe.scalalogging.LazyLogging
-import com.wa9nnn.multicasttool.multicast.MInterface.{iterfaces, logger}
+//import com.wa9nnn.multicasttool.multicast.MInterface.{iterfaces, logger}
 import com.wa9nnn.util.HostAndPort
 import org.scalafx.extras.onFX
 import play.api.libs.json.Json
@@ -15,6 +15,9 @@ import scala.jdk.CollectionConverters.EnumerationHasAsScala
 import scala.jdk.StreamConverters.StreamHasToScala
 
 class Multicast(hostAndPort: HostAndPort) extends LazyLogging {
+
+  private val broadcastHost = HostAndPort("255.255.255.255", 7311)
+
   val localHost: InetAddress = InetAddress.getLocalHost
   val us: String = localHost.getHostName
   private val nodeMap = new TrieMap[String, NodeStats]()
@@ -28,7 +31,7 @@ class Multicast(hostAndPort: HostAndPort) extends LazyLogging {
   }, 5, 750)
 
 
-  val multicastGroup = hostAndPort.toInetAddress
+  val multicastGroup: InetAddress = hostAndPort.toInetAddress
 
   val sn = new AtomicLong()
 
@@ -78,7 +81,7 @@ class Multicast(hostAndPort: HostAndPort) extends LazyLogging {
       sendtimer.cancel()
       sendSocket.close()
 
-      receiveSocket.leaveGroup(receiveSocket.getLocalSocketAddress, choosenInterface)
+      receiveSocket.leaveGroup(hostAndPort.toSocketAddress, choosenInterface)
       receiveSocket.close()
     } catch {
       case e: Throwable =>
@@ -89,7 +92,7 @@ class Multicast(hostAndPort: HostAndPort) extends LazyLogging {
   var buf = new Array[Byte](1000);
 
   new Thread(() => {
-    logger.info(s"Listening on ${
+    logger.info(s"multicast listening on  on ${
       multicastGroup.getHostName
     }:${hostAndPort.port}")
     var ongoing = true
@@ -105,7 +108,7 @@ class Multicast(hostAndPort: HostAndPort) extends LazyLogging {
         message.copy(source = Option(recv.getAddress.toString))
         logger.debug("Received: {}", message)
         val host = message.host
-        val nodeStats = nodeMap.getOrElseUpdate(host, {
+        val nodeStats = nodeMap.getOrElseUpdate(message.protocol + ":" + host, {
           val ns = NodeStats(message)
           nodes.addOne(ns)
           ns
@@ -121,7 +124,48 @@ class Multicast(hostAndPort: HostAndPort) extends LazyLogging {
 
 
       //        if (recv.getAddress != localHost)
-      //        logger.info(s"Multicast: addr:${recv.getAddress} => ${localHost.getHostName}:${recv.getPort} message: $sData")
+      //        logger.info(s"Multicast: addr:${recv.getAddress} => ${localHost.getHostName}:${recv.getPort} multicastMessage: $sData")
+    } while (ongoing)
+
+  })
+
+  new Thread(() => {
+    logger.info(s"Broadcast on ${
+      multicastGroup.getHostName
+    }:${hostAndPort.port}")
+
+    val socket = new DatagramSocket(broadcastHost.port)
+
+    var ongoing = true
+    do {
+      try {
+        val recv: DatagramPacket = new DatagramPacket(buf, buf.length);
+        socket.receive(recv);
+        val bufferBytes: Array[Byte] = recv.getData
+        val payloadBytes = bufferBytes.take(recv.getLength)
+
+        val message: UdpMessage = Json.parse(payloadBytes).as[UdpMessage]
+
+        message.copy(source = Option(recv.getAddress.toString))
+        logger.debug("Received: {}", message)
+        val host = message.host
+        val nodeStats = nodeMap.getOrElseUpdate(message.protocol + ":" + host, {
+          val ns = NodeStats(message)
+          nodes.addOne(ns)
+          ns
+        })
+        nodeStats.add(message)
+      } catch {
+        case e: SocketException =>
+          logger.debug("Receive socket closed.")
+          ongoing = false
+        case e: Throwable =>
+          logger.error("Exception Receive loop", e)
+      }
+
+
+      //        if (recv.getAddress != localHost)
+      //        logger.info(s"Multicast: addr:${recv.getAddress} => ${localHost.getHostName}:${recv.getPort} multicastMessage: $sData")
     } while (ongoing)
 
   }).start()
@@ -138,24 +182,23 @@ class Multicast(hostAndPort: HostAndPort) extends LazyLogging {
     }
   }, 10L, 1000L)
 
-
   def send(): Unit = {
 
-    val bound = sendSocket.isBound
-    val connected = sendSocket.isConnected
+    val multicastMessage = UdpMessage("M", us, sn.incrementAndGet())
+    val multicastBytes: Array[Byte] = Json.toJson(multicastMessage).toString().getBytes
 
-
-    val message = UdpMessage(us, sn.incrementAndGet())
-    val bytes = Json.toJson(message).toString().getBytes
-
-    //      val message = s"multicast Message: $sn".getBytes()
-    val datagramPacket = new DatagramPacket(bytes, bytes.length, multicastGroup, hostAndPort.port)
+    val datagramPacket = new DatagramPacket(multicastBytes, multicastBytes.length, multicastGroup, hostAndPort.port)
     try {
       sendSocket.send(datagramPacket)
-      logger.debug("Sent: {}", message)
+      logger.debug("Sent: {}", multicastMessage)
     } catch {
       case e: SocketException =>
         logger.debug("Send socket closed")
     }
+    val broadcastMessage = UdpMessage("B", us, sn.incrementAndGet())
+    val broadcatBytes: Array[Byte] = Json.toJson(broadcastMessage).toString().getBytes
+    val broadcastPackets = new DatagramPacket(broadcatBytes, broadcatBytes.length, broadcastHost.toInetAddress, broadcastHost.port)
+    sendSocket.send(broadcastPackets)
+
   }
 }
